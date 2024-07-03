@@ -2,12 +2,58 @@
 #include<stdlib.h>
 #include<string.h>
 #include<errno.h>
+#include<SDL.h>
+#include<stdbool.h>
+
 #ifdef _WIN32
 	#include<windows.h>
 #elid _linux_
 	#include<unistd.h>
 #endif
+
 #define cluster_size 512
+#define BUTTON_WIDTH 200
+#define BUTTON_HEIGHT 50
+
+typedef struct {
+	SDL_Rect rect;
+	SDL_Color color;
+	SDL_Color hoverColor;
+	SDL_Color activeColor;
+	int isHovered;
+	int isActive;
+}Button;
+
+int is_mouse_in_button(Button *button,int x,int y)
+{
+	return x>= button->rect.x && x<=(button->rect.x +button->rect.w) &&
+	y>= button->rect.y && y<=(button->rect.y +button->rect.h);
+}
+
+void button_renderer(SDL_Renderer *renderer,Button *button)
+{
+	SDL_Color color = button->isActive ? button->activeColor : (button->isHovered ? button->hoverColor : button->color);
+	SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
+	SDL_RenderFillRect(renderer, &button->rect);
+}
+void  scc(int code)
+{
+	if(code < 0)
+	{
+		fprintf(stderr,"SDL ERROR :%s\n",SDL_GetError());
+		exit(1);
+	}
+}
+
+void *scp (void *ptr)
+{
+	if( ptr == NULL)
+	{
+		fprintf(stderr,"SDL ERROR :%s\n",SDL_GetError());
+		exit(1);
+	}
+	return ptr;
+}
 long read_file(char *file_path) 
 {
 	char * buffer = NULL;
@@ -28,23 +74,6 @@ long read_file(char *file_path)
 		goto error;
 	}
 	return position;
-	/*
-	buffer = malloc(sizeof(char) * position); 
-	if(fseek(critical_file,0,SEEK_SET)<0)
-	{
-		goto error;
-	}
-	size_t m=fread(buffer,1,position,critical_file);
-
-	if(ferror(critical_file)){
-		goto error ;
-	}
-	if(size){
-		*size=m;
-	}
-	fclose(critical_file);
-	return buffer;
-	*/
 	error:
 	if (critical_file) {
 		fclose(critical_file);
@@ -109,7 +138,6 @@ long read_file(char *file_path)
 	printf("the %s file have sucessfully been split : \n %d :size -- %d bytes \n 1 :size -- %d bytes \n",file_path,parts,cluster_size,rem_size);
 	
 }
-
 int main(int argc,char **argv)
 {
 	if(argc<2)
@@ -118,16 +146,66 @@ int main(int argc,char **argv)
 		exit(1);
 	}
 	char * input_file_path = argv[1];
-	long content_size =read_file(input_file_path);
-	if (content_size == -1)
+	Button button = {{ 800/ 2 - BUTTON_WIDTH / 2,  800/ 2 - BUTTON_HEIGHT / 2, BUTTON_WIDTH, BUTTON_HEIGHT},{0, 0, 255, 255}, {0, 255, 0, 255}, {255, 0, 0, 255}, 0, 0};
+
+	SDL_Window * window = scp(SDL_CreateWindow("Faker",
+					     0, 0, 800,
+					     600, SDL_WINDOW_RESIZABLE));
+	SDL_Renderer * renderer= scp(SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED));
+	bool quit = false ;
+	while(!quit)
+	{
+		SDL_Event event = {0};
+		while (SDL_PollEvent(&event)) {
+			switch (event.type) {
+				case SDL_QUIT: {
+					quit = true;
+				} break;
+				case SDL_MOUSEMOTION:{
+					button.isHovered=is_mouse_in_button(&button,event.motion.x,event.motion.y);
+				} break;
+				case SDL_MOUSEBUTTONDOWN:{
+					if(button.isHovered)
+					{
+						button.isActive=1;
+					}
+				}break;
+				case SDL_MOUSEBUTTONUP: {
+					if(button.isActive) {
+						button.isActive=0;
+					}
+					if(button.isHovered){
+						long content_size =read_file(input_file_path);
+						if (content_size == -1)
+						{
+							fprintf(stderr,"ERROR: the file %s could not be read: %s\n",input_file_path,strerror(errno));
+							exit(1);
+						}
+						file_splitter(input_file_path,content_size);
+					}
+				} break;
+			}
+		}
+		SDL_SetRenderDrawColor(renderer,255,255,255,255);
+		SDL_RenderClear(renderer);
+		button_renderer(renderer,&button);
+		SDL_RenderPresent(renderer);
+	}
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
+	SDL_Quit();
+
+	/*char * input_file_path = argv[1];
+	long content_size =read_file(input_file_path);*/
+	/*if (content_size == -1)
 	{
 		fprintf(stderr,"ERROR: the file %s could not be read: %s\n"
 	  ,input_file_path,strerror(errno));
 		exit(1);
 	}
-	file_splitter(input_file_path,content_size);
+	file_splitter(input_file_path,content_size);*/
 
 	//printf("the size of %s file is :%ld bytes\n",input_file_path,content);
-	
+
 	//printf("hello this is the project");
 }

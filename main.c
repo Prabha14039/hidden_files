@@ -15,6 +15,8 @@
 #define cluster_size 512
 #define BUTTON_WIDTH 200
 #define BUTTON_HEIGHT 50
+#define SCREEN_HEIGHT 800
+#define SCREEN_WIDTH 600
 
 typedef struct {
 	SDL_Rect rect;
@@ -53,7 +55,7 @@ void button_renderer(SDL_Renderer *renderer,Button *button,TTF_Font *font)
 	SDL_RenderFillRect(renderer, &button->rect);
 	
 	if (font && button->text) {
-		SDL_Surface *textSurface = TTF_RenderText_Solid(font, button->text, ( SDL_Color ){255, 255, 255, 255}); // White color
+		SDL_Surface *textSurface = TTF_RenderText_Solid(font, button->text, ( SDL_Color ){0,0,0,255}); //Black 
 		if (textSurface) {
 			SDL_Texture *textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
 			if(textTexture){
@@ -173,7 +175,7 @@ int main(int argc,char **argv)
 		exit(1);
 	}
 	char * input_file_path = argv[1];
-	Button button = {{ 800/ 2 - BUTTON_WIDTH / 2,  800/ 2 - BUTTON_HEIGHT / 2, BUTTON_WIDTH, BUTTON_HEIGHT},{0, 0, 255, 255}, {0, 255, 0, 255}, {255, 0, 0, 255}, 0, 0,"click to start!!!!"};
+	Button button = {{ SCREEN_HEIGHT/ 2 - BUTTON_WIDTH / 2,  SCREEN_HEIGHT/ 2 - BUTTON_HEIGHT / 2, BUTTON_WIDTH, BUTTON_HEIGHT},{255, 255, 255, 255}, {255, 255, 255, 255}, {255, 255, 255, 255}, 0, 0,"click to start!!!!"};
 
 	if (TTF_Init() < 0) {
 		fprintf(stderr, "Unable to initialize SDL_ttf: %s\n", TTF_GetError());
@@ -182,15 +184,15 @@ int main(int argc,char **argv)
 	}
 
 	const char *path="/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf";
-	TTF_Font *font = TTF_OpenFont(path,18 );
+	TTF_Font *font = TTF_OpenFont(path,21);
 	if (!font) {
 		fprintf(stderr, "Error loading font: %s\n", TTF_GetError());
 		exit(1);
 	}
 
 	SDL_Window * window = scp(SDL_CreateWindow("Faker",
-					     0, 0, 800,
-					     600, SDL_WINDOW_RESIZABLE));
+					     0, 0,SCREEN_HEIGHT, 
+					     SCREEN_WIDTH, SDL_WINDOW_RESIZABLE));
 	SDL_Renderer * renderer= scp(SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED));
 	bool quit = false ;
 	while(!quit)

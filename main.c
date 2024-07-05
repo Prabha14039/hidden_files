@@ -4,6 +4,7 @@
 #include<errno.h>
 #include<SDL.h>
 #include<stdbool.h>
+#include<SDL_ttf.h>
 
 #ifdef _WIN32
 	#include<windows.h>
@@ -22,7 +23,22 @@ typedef struct {
 	SDL_Color activeColor;
 	int isHovered;
 	int isActive;
+	const char *text;
 }Button;
+
+void text_render(SDL_Renderer *renderer,Button *button,SDL_Surface *textSurface,SDL_Texture *textTexture){
+	int textWidth = textSurface->w;
+	int textHeight = textSurface->h;
+	int textX = button->rect.x + (button->rect.w - textWidth) / 2;
+	int textY = button->rect.y + (button->rect.h - textHeight) / 2;
+
+	// Render the text texture
+	SDL_Rect textRect = { textX, textY, textWidth, textHeight };
+	SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+
+	// Clean up texture
+	SDL_DestroyTexture(textTexture);
+}
 
 int is_mouse_in_button(Button *button,int x,int y)
 {
@@ -30,11 +46,22 @@ int is_mouse_in_button(Button *button,int x,int y)
 	y>= button->rect.y && y<=(button->rect.y +button->rect.h);
 }
 
-void button_renderer(SDL_Renderer *renderer,Button *button)
+void button_renderer(SDL_Renderer *renderer,Button *button,TTF_Font *font)
 {
 	SDL_Color color = button->isActive ? button->activeColor : (button->isHovered ? button->hoverColor : button->color);
 	SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
 	SDL_RenderFillRect(renderer, &button->rect);
+	
+	if (font && button->text) {
+		SDL_Surface *textSurface = TTF_RenderText_Solid(font, button->text, ( SDL_Color ){255, 255, 255, 255}); // White color
+		if (textSurface) {
+			SDL_Texture *textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+			if(textTexture){
+				text_render(renderer,button,textSurface,textTexture);
+			}
+			SDL_FreeSurface(textSurface);
+		}
+	}
 }
 void  scc(int code)
 {
@@ -146,7 +173,20 @@ int main(int argc,char **argv)
 		exit(1);
 	}
 	char * input_file_path = argv[1];
-	Button button = {{ 800/ 2 - BUTTON_WIDTH / 2,  800/ 2 - BUTTON_HEIGHT / 2, BUTTON_WIDTH, BUTTON_HEIGHT},{0, 0, 255, 255}, {0, 255, 0, 255}, {255, 0, 0, 255}, 0, 0};
+	Button button = {{ 800/ 2 - BUTTON_WIDTH / 2,  800/ 2 - BUTTON_HEIGHT / 2, BUTTON_WIDTH, BUTTON_HEIGHT},{0, 0, 255, 255}, {0, 255, 0, 255}, {255, 0, 0, 255}, 0, 0,"click to start!!!!"};
+
+	if (TTF_Init() < 0) {
+		fprintf(stderr, "Unable to initialize SDL_ttf: %s\n", TTF_GetError());
+		SDL_Quit();
+		exit(1);
+	}
+
+	const char *path="/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf";
+	TTF_Font *font = TTF_OpenFont(path,18 );
+	if (!font) {
+		fprintf(stderr, "Error loading font: %s\n", TTF_GetError());
+		exit(1);
+	}
 
 	SDL_Window * window = scp(SDL_CreateWindow("Faker",
 					     0, 0, 800,
@@ -186,9 +226,9 @@ int main(int argc,char **argv)
 				} break;
 			}
 		}
-		SDL_SetRenderDrawColor(renderer,255,255,255,255);
+		SDL_SetRenderDrawColor(renderer,0,0,0,255);
 		SDL_RenderClear(renderer);
-		button_renderer(renderer,&button);
+		button_renderer(renderer,&button,font);
 		SDL_RenderPresent(renderer);
 	}
 	SDL_DestroyRenderer(renderer);

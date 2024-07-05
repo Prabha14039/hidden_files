@@ -8,7 +8,7 @@ main:main.c
 	$(GC) $(GCC) -o build/main main.c
 
 clean:
-	rm -rf build/./
+	rm -rf build/*
 
 compile:
 	./build/main critical_file.txt

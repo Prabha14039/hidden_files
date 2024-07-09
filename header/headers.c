@@ -16,7 +16,6 @@ int get_cluster_size(char *path) {
         perror("statvfs");
         exit(EXIT_FAILURE);
     }
-
     unsigned long cluster_size = stat.f_frsize;
     printf("Cluster size: %lu bytes\n", cluster_size);
     return cluster_size;
@@ -49,11 +48,7 @@ int win_cluster_size( char *path) {
     return cluster_size;
 }
 
-
 #endif
-
-
-
 
 size_t read_file(char *file_path)
 {
@@ -159,7 +154,9 @@ void generation_and_sequencing(size_t cluster_size,int parts,int rem_size)
     FILE * outputfile;
     FILE * rem;
 
-#ifdef _WIN64 || _WIN32
+#ifdef _WIN64
+   _mkdir("files");
+#elif _WIN32
    _mkdir("files");
 #else
     mkdir("files",0777);
@@ -249,8 +246,16 @@ void generation_and_sequencing(size_t cluster_size,int parts,int rem_size)
 
     }
 
-    printf("The additional files have sucessfully been generated: \n %d :size -- %zi bytes \n 2 :size -- %d bytes \n",parts,cluster_size,rem_size);
+#ifdef _WIN64
+    printf("The dummy files have sucessfully been generated: \n %d :size -- %zu bytes \n 1 :size -- %d bytes \n",parts,cluster_size,rem_size);
+    printf("The additional files have sucessfully been generated: \n %d :size -- %zu bytes \n 2 :size -- %d bytes \n",parts,cluster_size,rem_size);
+#elif _WIN32
+    printf("The dummy files have sucessfully been generated: \n %d :size -- %zu bytes \n 1 :size -- %d bytes \n",parts,cluster_size,rem_size);
+    printf("The additional files have sucessfully been generated: \n %d :size -- %zu bytes \n 2 :size -- %d bytes \n",parts,cluster_size,rem_size);
+#else
     printf("The dummy files have sucessfully been generated: \n %d :size -- %zi bytes \n 1 :size -- %d bytes \n",parts,cluster_size,rem_size);
+    printf("The additional files have sucessfully been generated: \n %d :size -- %zi bytes \n 2 :size -- %d bytes \n",parts,cluster_size,rem_size);
+#endif
 }
 
  void file_splitter(char * file_path,size_t cluster_size,int parts,int rem_size)

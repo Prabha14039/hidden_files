@@ -304,5 +304,12 @@ void generation_and_sequencing(size_t cluster_size,int parts,int rem_size)
 	}
 
 	fclose(f);
+
+#ifdef _WIN64
+	printf("the %s file have sucessfully been split : \n %d :size -- %zu bytes \n 1 :size -- %d bytes \n",file_path,parts,cluster_size,rem_size);
+#elif _WIN32
+	printf("the %s file have sucessfully been split : \n %d :size -- %zu bytes \n 1 :size -- %d bytes \n",file_path,parts,cluster_size,rem_size);
+#else
 	printf("the %s file have sucessfully been split : \n %d :size -- %zi bytes \n 1 :size -- %d bytes \n",file_path,parts,cluster_size,rem_size);
+#endif
 }

@@ -1,15 +1,15 @@
+#ifdef __unix__
+
 #include "headers.h"
 #include<stddef.h>
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
 #include<errno.h>
+#include <sys/stat.h>
 #include <sys/statvfs.h>
-#ifdef _WIN32
-	#include<windows.h>
-#endif
 
-int get_cluster_size(const char *path) {
+int get_cluster_size(char *path) {
     struct statvfs stat;
 
     if (statvfs(path, &stat) != 0) {
@@ -22,7 +22,40 @@ int get_cluster_size(const char *path) {
     return cluster_size;
 }
 
-long read_file(char *file_path)
+#elif defined(_WIN32) || defined(WIN32) || defined(_WIN64) || defined(WIN64)
+
+#include "headers.h"
+#include<stddef.h>
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<errno.h>
+#include<windows.h>
+#include <direct.h>
+
+int win_cluster_size( char *path) {
+    DWORD sectorsPerCluster;
+    DWORD bytesPerSector;
+    DWORD numberOfFreeClusters;
+    DWORD totalNumberOfClusters;
+
+    if (!GetDiskFreeSpaceA(path, &sectorsPerCluster, &bytesPerSector, &numberOfFreeClusters, &totalNumberOfClusters)) {
+        fprintf(stderr, "GetDiskFreeSpace failed. Error: %lu\n", GetLastError());
+        return;
+    }
+
+    DWORD cluster_size = sectorsPerCluster * bytesPerSector;
+    printf("Cluster size: %lu bytes\n", cluster_size);
+    return cluster_size;
+}
+
+
+#endif
+
+
+
+
+size_t read_file(char *file_path)
 {
 	char * buffer = NULL;
 	FILE *critical_file=fopen(file_path,"rb");
@@ -42,6 +75,7 @@ long read_file(char *file_path)
 		goto error;
 	}
 	return position;
+
 	/*
 	buffer = malloc(sizeof(char) * position);
 	if(fseek(critical_file,0,SEEK_SET)<0)
@@ -59,6 +93,7 @@ long read_file(char *file_path)
 	fclose(critical_file);
 	return buffer;
 	*/
+
 	error:
 	if (critical_file) {
 		fclose(critical_file);
@@ -71,8 +106,9 @@ long read_file(char *file_path)
 	return -1;
 }
 
-void dummy_files_generator(size_t cluster_size,int parts,int rem_size)
+/*void dummy_files_generator(size_t cluster_size,int parts,int rem_size)
 {
+
 	char * file_path = "/home/prabha03/personal/hidden_files/build/dummy_generated";
 
 	for (int i=0;i<parts;i++)
@@ -112,9 +148,111 @@ void dummy_files_generator(size_t cluster_size,int parts,int rem_size)
 		fwrite(buffer,1 ,cluster_size,rem);
 		fclose(rem);
 	}
-
 	printf("The dummy files have sucessfully been generated: \n %d :size -- %zi bytes \n 1 :size -- %d bytes \n",parts,cluster_size,rem_size);
+}*/
+
+void generation_and_sequencing(size_t cluster_size,int parts,int rem_size)
+{
+    char buffer [cluster_size];
+    char rem_file[100];
+    char output_file[100];
+    FILE * outputfile;
+    FILE * rem;
+
+#ifdef _WIN64
+   _mkdir("files");
+#else
+    mkdir("files",0777);
+#endif
+
+    for (int i=0;i<parts;i++)
+    {
+        snprintf(output_file ,sizeof(output_file), "./files/A_%03d" ,i+1);
+        outputfile =fopen(output_file,"wb");
+        if (outputfile == NULL)
+        {
+            fprintf(stderr,"ERROR: the File %s could not be read: %s\n"
+                    ,output_file,strerror(errno));
+            exit(1);
+        }
+        for (size_t j = 0; j < cluster_size; j++) {
+            buffer[j] = 1;
+        }
+        fwrite(buffer,1 ,cluster_size,outputfile);
+        fclose(outputfile);
+
+        snprintf(output_file ,sizeof(output_file), "./files/D_%03d", i+1);
+        outputfile=fopen(output_file,"wb");
+        if (outputfile == NULL)
+        {
+            fprintf(stderr,"ERROR: the File %s could not be read: %s\n"
+                    ,output_file,strerror(errno));
+            exit(1);
+        }
+        for (size_t j = 0; j < cluster_size; j++) {
+            buffer[j] = 0;
+        }
+        fwrite(buffer,1 ,cluster_size,outputfile);
+        fclose(outputfile);
+
+    }
+
+    if (rem_size>0)
+    {
+        snprintf(rem_file ,sizeof(rem_file), "./files/AR_00");
+        rem=fopen(rem_file,"wb");
+        if (rem == NULL)
+        {
+            fprintf(stderr,"ERROR: the file %s could not be read: %s\n"
+                    ,rem_file,strerror(errno));
+            exit(1);
+        }
+
+        for (size_t j = 0; j < cluster_size; j++) {
+            buffer[j] = 1;
+        }
+
+        fwrite(buffer,1 ,cluster_size,rem);
+        fclose(rem);
+
+        snprintf(rem_file ,sizeof(rem_file), "./files/DR_00");
+        rem=fopen(rem_file,"wb");
+        if (rem == NULL)
+        {
+            fprintf(stderr,"ERROR: the file %s could not be read: %s\n"
+                    ,rem_file,strerror(errno));
+            exit(1);
+        }
+
+        for (size_t j = 0; j < cluster_size; j++) {
+            buffer[j] = 0;
+        }
+
+        fwrite(buffer,1 ,cluster_size,rem);
+        fclose(rem);
+
+        snprintf(rem_file ,sizeof(rem_file), "./files/AR_01");
+        rem=fopen(rem_file,"wb");
+        if (rem == NULL)
+        {
+            fprintf(stderr,"ERROR: the file %s could not be read: %s\n"
+                    ,rem_file,strerror(errno));
+            exit(1);
+        }
+
+        for (size_t j = 0; j < cluster_size; j++) {
+            buffer[j] = 1;
+        }
+
+        fwrite(buffer,1 ,cluster_size,rem);
+        fclose(rem);
+
+    }
+
+    printf("The additional files have sucessfully been generated: \n %d :size -- %zi bytes \n 2 :size -- %d bytes \n",parts,cluster_size,rem_size);
+    printf("The dummy files have sucessfully been generated: \n %d :size -- %zi bytes \n 1 :size -- %d bytes \n",parts,cluster_size,rem_size);
 }
+
  void file_splitter(char * file_path,size_t cluster_size,int parts,int rem_size)
 {
 	FILE *f=fopen(file_path,"rb");

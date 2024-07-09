@@ -10,5 +10,5 @@ main:main.c
 clean:
 	rm -rf build/*
 
-compile:
-	./build/main critical_file.txt
+build:
+	mkdir build

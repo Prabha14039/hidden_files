@@ -5,7 +5,7 @@ LIBS=`pkg-config --libs sdl2` -lm
 all:main
 
 main:main.c
-	$(GCC) $(CFLAGS) -o build/main main.c $(LIBS) -lSDL2_ttf -lm
+	$(GCC) $(CFLAGS) -o build/main main.c headers/headers.c $(LIBS) -lSDL2_ttf -lm
 
 clean:
 	rm -rf build/*

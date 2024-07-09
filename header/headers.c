@@ -41,7 +41,7 @@ int win_cluster_size( char *path) {
 
     if (!GetDiskFreeSpaceA(path, &sectorsPerCluster, &bytesPerSector, &numberOfFreeClusters, &totalNumberOfClusters)) {
         fprintf(stderr, "GetDiskFreeSpace failed. Error: %lu\n", GetLastError());
-        return;
+        return -1;
     }
 
     DWORD cluster_size = sectorsPerCluster * bytesPerSector;
@@ -159,7 +159,7 @@ void generation_and_sequencing(size_t cluster_size,int parts,int rem_size)
     FILE * outputfile;
     FILE * rem;
 
-#ifdef _WIN64
+#ifdef _WIN64 || _WIN32
    _mkdir("files");
 #else
     mkdir("files",0777);

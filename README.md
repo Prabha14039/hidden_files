@@ -2,6 +2,7 @@
 
 ## command's to run
 ### make
+### cd build    
 ### java FileProcessorGUI
 ### del build
 

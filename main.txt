@@ -81,7 +81,7 @@ public class Encryptor {
 
     public static void generationAndSequencing(String filePath, long clusterSize, int parts, int remSize) throws IOException {
         byte[] buffer = new byte[(int) clusterSize];
-        new File("File").mkdirs();
+        new File("FileA").mkdirs();
 
         String fileExtension = Extension(filePath);
 
@@ -131,6 +131,9 @@ public class Encryptor {
             }
         }
 
+        // called combined files
+
+        CombineFiles(String externalDrivePath, Files, String additionalFilesPath){
         System.out.printf("The dummy files have successfully been generated: \n%d: size -- %d bytes \n1: size -- %d bytes \n", parts, clusterSize, remSize);
         System.out.printf("The additional files have successfully been generated: \n%d: size -- %d bytes \n2: size -- %d bytes \n", parts, clusterSize, remSize);
     }

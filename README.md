@@ -10,5 +10,5 @@
 
 ![where to add function](images/image.png)
 
-### add your code in the **try**  block 
+### add your code in the  ** try **  block in the src/Main.java
 ### add your function in the /src/Encryptors.java

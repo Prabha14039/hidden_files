@@ -1,4 +1,6 @@
 import java.io.File;
+import java.nio.file.FileSystems;
+import java.nio.file.FileStore;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
@@ -10,6 +12,9 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import javax.swing.filechooser.FileSystemView;
 
 
 class ClusterNode {
@@ -24,7 +29,92 @@ class ClusterNode {
 
 public class Encryptor {
 
-    public static void FileSplitter(String filePath)
+    public static long getClusterSize(String path) throws IOException {
+        Path p = FileSystems.getDefault().getPath(path);
+        FileStore store = java.nio.file.Files.getFileStore(p);
+        long clusterSize = store.getBlockSize();
+        //    System.out.println("Cluster size: " + clusterSize + " bytes");
+        return clusterSize;
+    }
+
+    public static String drive_path()
+    {
+        FileSystemView fileSystemView = FileSystemView.getFileSystemView();
+        File[] roots = File.listRoots();
+
+        //System.out.println("Drives:");
+
+        for (File root : roots) 
+        {
+            // Print basic information about each root
+
+            // Check if the drive is removable or has other specific descriptions
+            String description = fileSystemView.getSystemTypeDescription(root);
+            if (description != null && (description.contains("Removable") || description.contains("USB Drive"))) {
+                // Use the path of the removable drive
+                String drivePath = root.getAbsolutePath();
+                //      System.out.println("Path of removable drive: " + drivePath);
+                // Check file system type
+                String fileSystemType = getFileSystemType(drivePath);
+                return drivePath; 
+                //   System.out.println("File System Type: " + fileSystemType);
+            } 
+            // System.out.println();
+        }
+        return null;
+    }
+
+    // Method to get the file system type using fsutil
+    private static String getFileSystemType(String drivePath) {
+        String fileSystemType = "Unknown";
+
+        try {
+            // Ensure the drive path does not have a trailing backslash
+            drivePath = drivePath.endsWith("\\") ? drivePath.substring(0, drivePath.length() - 1) : drivePath;
+
+            // Run the 'fsutil fsinfo volumeinfo' command to get file system details
+            Process process = Runtime.getRuntime().exec("fsutil fsinfo volumeinfo " + drivePath);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+
+            // Print the output for debugging
+            //          System.out.println("Debug output of 'fsutil fsinfo volumeinfo " + drivePath + "':");
+            while ((line = reader.readLine()) != null) {
+                //              System.out.println(line);  // Print each line of output
+                if (line.contains("File System Name")) {
+                    fileSystemType = line.split(":")[1].trim();
+                }
+            }
+
+            process.waitFor();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return fileSystemType;
+    }
+
+    public static long readFile(String filePath) {
+        RandomAccessFile file = null;
+        try {
+            file = new RandomAccessFile(filePath, "r");
+            long length = file.length();
+            return length;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return -1;
+        } finally {
+            if (file != null) {
+                try {
+                    file.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public static void FileSplitter(String filePath,long clusterSize, int parts, int remSize)
     {
         RandomAccessFile file = null;
         try {
@@ -55,7 +145,6 @@ public class Encryptor {
                 }
             }
 
-            System.out.printf("The %s file has successfully been split: \n%d: size -- %d bytes \n1: size -- %d bytes \n", filePath, parts, clusterSize, remSize);
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -74,27 +163,60 @@ public class Encryptor {
     {
         String fileExtension = "";
         int dotIndex = filePath.lastIndexOf('.');
-        if (dotIndex > 0 && dotIndex < filePath.length() - 1) {
+        if (dotIndex > 0 && dotIndex < filePath.length() - 1) 
+        {
             fileExtension = filePath.substring(dotIndex);
+            return fileExtension;
         }
+        return fileExtension;
+        
     }
 
-    public static void generationAndSequencing(String filePath, long clusterSize, int parts, int remSize) throws IOException {
+    public static void additionfiles(String filePath, long clusterSize, int parts, int remSize) throws IOException {
         byte[] buffer = new byte[(int) clusterSize];
         new File("FileA").mkdirs();
 
         String fileExtension = Extension(filePath);
 
         for (int i = 1; i <=parts; i++) {
-            String outputFile = String.format("./File/file %04d" + fileExtension, 2*i-1);
+            String outputFile = String.format("./FileA/file %04d" + fileExtension, 2*i-1);
             try (FileOutputStream outputStream = new FileOutputStream(outputFile)) {
                 for (int j = 0; j < clusterSize; j++) {
                     buffer[j] = 1;
                 }
                 outputStream.write(buffer);
             }
+        }
 
-            String OutputFile = String.format("./File/file %04d" + fileExtension, 2*i);
+        if (remSize > 0) {
+            int startIndex = 2 * parts + 1;
+
+            String remFile = String.format("./FileA/file %04d" + fileExtension, startIndex);
+            try (FileOutputStream rem = new FileOutputStream(remFile)) {
+                for (int j = 0; j < clusterSize; j++) {
+                    buffer[j] = 1;
+                }
+                rem.write(buffer);
+            }
+
+            String remFile3 = String.format("./FileA/file %04d" + fileExtension, startIndex + 2);
+            try (FileOutputStream rem3 = new FileOutputStream(remFile3)) {
+                for (int j = 0; j < clusterSize; j++) {
+                    buffer[j] = 1;
+                }
+                rem3.write(buffer);
+            }
+        }
+    }
+
+    public static void dummyfiles(String filePath, long clusterSize, int parts, int remSize) throws IOException {
+        byte[] buffer = new byte[(int) clusterSize];
+        new File("FileD").mkdirs();
+
+        String fileExtension = Extension(filePath);
+
+        for (int i = 1; i <=parts; i++) {
+            String OutputFile = String.format("./FileD/file %04d" + fileExtension, 2*i);
             try (FileOutputStream OutputStream = new FileOutputStream(OutputFile)) {
                 for (int j = 0; j < clusterSize; j++) {
                     buffer[j] = 0;
@@ -106,40 +228,16 @@ public class Encryptor {
         if (remSize > 0) {
             int startIndex = 2 * parts + 1;
 
-            String remFile = String.format("./File/file %04d" + fileExtension, startIndex);
-            try (FileOutputStream rem = new FileOutputStream(remFile)) {
-                for (int j = 0; j < clusterSize; j++) {
-                    buffer[j] = 1;
-                }
-                rem.write(buffer);
-            }
-
-            String remFile2 = String.format("./File/file %04d" + fileExtension, startIndex + 1);
+            String remFile2 = String.format("./FileD/file %04d" + fileExtension, startIndex + 1);
             try (FileOutputStream rem2 = new FileOutputStream(remFile2)) {
                 for (int j = 0; j < clusterSize; j++) {
                     buffer[j] = 0;
                 }
                 rem2.write(buffer);
             }
-
-            String remFile3 = String.format("./File/file %04d" + fileExtension, startIndex + 2);
-            try (FileOutputStream rem3 = new FileOutputStream(remFile3)) {
-                for (int j = 0; j < clusterSize; j++) {
-                    buffer[j] = 1;
-                }
-                rem3.write(buffer);
-            }
         }
-
-        // called combined files
-
-        CombineFiles(String externalDrivePath, Files, String additionalFilesPath){
-        System.out.printf("The dummy files have successfully been generated: \n%d: size -- %d bytes \n1: size -- %d bytes \n", parts, clusterSize, remSize);
-        System.out.printf("The additional files have successfully been generated: \n%d: size -- %d bytes \n2: size -- %d bytes \n", parts, clusterSize, remSize);
     }
-
     public static void Retrieval(String drivePath){
-
 
     }
     {
@@ -289,6 +387,7 @@ public class Encryptor {
     }
 
     public static void physicalClusterReservation(String externalDrivePath){
+        externalDrivePath = externalDrivePath.replace("\\","/");
         int rootDirSize = calcRootdir(externalDrivePath);
         ClusterNode head = FAT32ReadandDelete(externalDrivePath);
     }

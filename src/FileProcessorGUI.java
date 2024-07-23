@@ -3,7 +3,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-
 import java.io.IOException;
 
 public class FileProcessorGUI extends JFrame {
@@ -23,9 +22,6 @@ public class FileProcessorGUI extends JFrame {
         inputFilePathField = new JTextField(20);
         JButton browseButton = new JButton("Browse...");
         JButton processButton = new JButton("Process File");
-        JLabel outputLabel = new JLabel("Output File Path:");
-        outputFilePathField = new JTextField(20);
-        JButton combineButton = new JButton("Combine Files");
         outputArea = new JTextArea(10, 50);
         outputArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(outputArea);
@@ -43,14 +39,6 @@ public class FileProcessorGUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 processFile();
-            }
-        });
-
-        // Add ActionListener to the combine button
-        combineButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                combineFiles();
             }
         });
 
@@ -76,22 +64,36 @@ public class FileProcessorGUI extends JFrame {
         add(processButton, gbc);
 
         gbc.gridx = 0;
-        gbc.gridy = 2;
-        add(outputLabel, gbc);
-
-        gbc.gridx = 1;
-        add(outputFilePathField, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.gridwidth = 3;
-        gbc.anchor = GridBagConstraints.CENTER;
-        add(combineButton, gbc);
-
-        gbc.gridx = 0;
         gbc.gridy = 4;
         gbc.gridwidth = 3;
         add(scrollPane, gbc);
+
+        // Show the initial prompt when the GUI is opened
+        showInitialPrompt();
+    }
+
+    private void showInitialPrompt() {
+        String[] options = {"Retrieve Data", "Hide Data"};
+        int choice = JOptionPane.showOptionDialog(this,
+                "Do you want to retrieve or hide the data?",
+                "Select Option",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.INFORMATION_MESSAGE,
+                null,
+                options,
+                options[0]);
+
+        // Handle the user's choice
+        if (choice == 0) {
+            // Retrieve data
+            outputArea.setText("Data retrieval option selected.");
+        } else if (choice == 1) {
+            // Hide data
+            outputArea.setText("Data hiding option selected.");
+        } else {
+            // User closed the dialog
+            outputArea.setText("No option selected.");
+        }
     }
 
     private void selectFile() {
@@ -122,22 +124,6 @@ public class FileProcessorGUI extends JFrame {
         }
 
         JOptionPane.showMessageDialog(this, "File processing completed.", "Success", JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    private void combineFiles() {
-        String outputFilePath = outputFilePathField.getText();
-        if (outputFilePath.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please provide the output file path.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        // Clear the output area
-        outputArea.setText("");
-
-        // Call the combineFiles method from Main class
-        Main.combineFiles(outputFilePath, outputArea);
-
-        JOptionPane.showMessageDialog(this, "File combining completed.", "Success", JOptionPane.INFORMATION_MESSAGE);
     }
 
     public static void main(String[] args) {

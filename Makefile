@@ -2,7 +2,7 @@
 all:Main
 
 Main:
-	javac -d build  -sourcepath src src/FileProcessorGUI.java src/Main.java src/utils/FileUtils.java
+	javac -d build  -sourcepath src src/FileProcessorGUI.java src/Main.java src/Encryptor.java
 
 clean:
-	rm -rf build
+	del .\build\

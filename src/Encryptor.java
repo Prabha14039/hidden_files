@@ -50,18 +50,19 @@ public class Encryptor {
 
             // Check if the drive is removable or has other specific descriptions
             String description = fileSystemView.getSystemTypeDescription(root);
+            System.out.println(description);
             if (description != null && (description.contains("Removable") || description.contains("USB Drive"))) {
                 // Use the path of the removable drive
                 String drivePath = root.getAbsolutePath();
                 //      System.out.println("Path of removable drive: " + drivePath);
                 // Check file system type
                 String fileSystemType = getFileSystemType(drivePath);
-                return drivePath; 
+                return "\\\\.\\D:\\"; 
                 //   System.out.println("File System Type: " + fileSystemType);
             } 
             // System.out.println();
         }
-        return null;
+        return "\\\\.\\D:\\";
     }
 
     // Method to get the file system type using fsutil
@@ -179,7 +180,7 @@ public class Encryptor {
         String fileExtension = Extension(filePath);
 
         for (int i = 1; i <=parts; i++) {
-            String outputFile = String.format("./FileA/file %04d" + fileExtension, 2*i-1);
+            String outputFile = String.format("./FileA/File%04d" + fileExtension, 2*i-1);
             try (FileOutputStream outputStream = new FileOutputStream(outputFile)) {
                 for (int j = 0; j < clusterSize; j++) {
                     buffer[j] = 1;
@@ -191,7 +192,7 @@ public class Encryptor {
         if (remSize > 0) {
             int startIndex = 2 * parts + 1;
 
-            String remFile = String.format("./FileA/file %04d" + fileExtension, startIndex);
+            String remFile = String.format("./FileA/File%04d" + fileExtension, startIndex);
             try (FileOutputStream rem = new FileOutputStream(remFile)) {
                 for (int j = 0; j < clusterSize; j++) {
                     buffer[j] = 1;
@@ -199,7 +200,7 @@ public class Encryptor {
                 rem.write(buffer);
             }
 
-            String remFile3 = String.format("./FileA/file %04d" + fileExtension, startIndex + 2);
+            String remFile3 = String.format("./FileA/File%04d" + fileExtension, startIndex + 2);
             try (FileOutputStream rem3 = new FileOutputStream(remFile3)) {
                 for (int j = 0; j < clusterSize; j++) {
                     buffer[j] = 1;
@@ -216,7 +217,7 @@ public class Encryptor {
         String fileExtension = Extension(filePath);
 
         for (int i = 1; i <=parts; i++) {
-            String OutputFile = String.format("./FileD/file %04d" + fileExtension, 2*i);
+            String OutputFile = String.format("./FileD/File%04d" + fileExtension, 2*i);
             try (FileOutputStream OutputStream = new FileOutputStream(OutputFile)) {
                 for (int j = 0; j < clusterSize; j++) {
                     buffer[j] = 0;
@@ -228,7 +229,7 @@ public class Encryptor {
         if (remSize > 0) {
             int startIndex = 2 * parts + 1;
 
-            String remFile2 = String.format("./FileD/file %04d" + fileExtension, startIndex + 1);
+            String remFile2 = String.format("./FileD/File%04d" + fileExtension, startIndex + 1);
             try (FileOutputStream rem2 = new FileOutputStream(remFile2)) {
                 for (int j = 0; j < clusterSize; j++) {
                     buffer[j] = 0;

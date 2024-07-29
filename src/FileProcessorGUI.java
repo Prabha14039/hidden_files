@@ -87,6 +87,7 @@ public class FileProcessorGUI extends JFrame {
         if (choice == 0) {
             // Retrieve data
             outputArea.setText("Data retrieval option selected.");
+            
         } else if (choice == 1) {
             // Hide data
             outputArea.setText("Data hiding option selected.");

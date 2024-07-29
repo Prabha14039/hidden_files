@@ -10,6 +10,7 @@ public class FileProcessorGUI extends JFrame {
     private JTextField inputFilePathField;
     private JTextField outputFilePathField;
     private JTextArea outputArea;
+    private JProgressBar progressBar;
 
     public FileProcessorGUI() {
         setTitle("File Processor");
@@ -25,6 +26,10 @@ public class FileProcessorGUI extends JFrame {
         outputArea = new JTextArea(10, 50);
         outputArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(outputArea);
+
+        // Create progress bar
+        progressBar = new JProgressBar();
+        progressBar.setStringPainted(true);
 
         // Add ActionListener to the browse button
         browseButton.addActionListener(new ActionListener() {
@@ -64,9 +69,14 @@ public class FileProcessorGUI extends JFrame {
         add(processButton, gbc);
 
         gbc.gridx = 0;
-        gbc.gridy = 4;
+        gbc.gridy = 2;
         gbc.gridwidth = 3;
         add(scrollPane, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 3;
+        add(progressBar, gbc);
 
         // Show the initial prompt when the GUI is opened
         showInitialPrompt();
@@ -116,15 +126,25 @@ public class FileProcessorGUI extends JFrame {
         // Clear the output area
         outputArea.setText("");
 
-        // Call the processFile method from Main class
-        try {
-            Main.processFile(inputFilePath, outputArea);
-        } catch (IOException e) {
-            e.printStackTrace();
-            outputArea.append("Error during file processing.\n");
-        }
+        // Call the processFile method from Main class with progress bar
+        SwingWorker<Void, Void> worker = new SwingWorker<>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                try {
+                    Main.processFile(inputFilePath, outputArea, progressBar);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    outputArea.append("Error during file processing.\n");
+                }
+                return null;
+            }
 
-        JOptionPane.showMessageDialog(this, "File processing completed.", "Success", JOptionPane.INFORMATION_MESSAGE);
+            @Override
+            protected void done() {
+                JOptionPane.showMessageDialog(FileProcessorGUI.this, "File processing completed.", "Success", JOptionPane.INFORMATION_MESSAGE);
+            }
+        };
+        worker.execute();
     }
 
     public static void main(String[] args) {

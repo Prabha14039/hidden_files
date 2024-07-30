@@ -1,12 +1,15 @@
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.List;
 
 public class exFATOperations {
 
-    Siring drive = Encryptor.drive_path();
+    static String drive = "D";
     static int[] FileFormat = {0x46, 0x69, 0x6C, 0x65, 0x30, 0x30, 0x30, 0x31, 0x2E, 0x74, 0x78, 0x74};
     
     public static void main(String[] args) {
@@ -21,6 +24,44 @@ public class exFATOperations {
         }
 
         
+    }
+
+    public static void deleteEvenNumberedFiles() {
+        File directory = new File("D:\\");
+        System.out.println("Starting file deletion");
+        if (!directory.exists() || !directory.isDirectory()) {
+            System.out.println("The specified drive is not valid.");
+            return;
+        }
+
+        File[] files = directory.listFiles();
+        if (files == null) {
+            System.out.println("Could not list files in the specified drive.");
+            return;
+        }
+
+        for (File file : files) {
+            String fileName = file.getName();
+            System.out.println("Current File: " + fileName);
+            if (fileName.length() == 12 && fileName.startsWith("File")) {
+                try {
+                    char check = fileName.charAt(fileName.length()-5);
+                    System.out.println("Check evaluated to: "+check);
+                    int number = check-'0';
+
+                    if (number % 2 == 0) {
+                        if (file.delete()) {
+                            System.out.println("Deleted: " + fileName);
+                        } else {
+                            System.out.println("Failed to delete: " + fileName);
+                        }
+                    }
+                } catch (NumberFormatException e) {
+                    // If the substring is not a valid number, ignore this file
+                    System.out.println("Invalid File Format");
+                }
+            }
+        }
     }
 
     public static int convertHexToDecimal(ArrayList<Byte> byteArray) {
@@ -103,15 +144,18 @@ public class exFATOperations {
 
         ArrayList<Integer> thisFileData = new ArrayList<>();
         byte[] thisSectorData = readSector.readSector(drive, sectorNumber);
-        // System.out.println("Working with sector: "+sectorNumber);
-        // System.out.println("At index: "+index);
+
+        System.out.println("Working with sector: "+sectorNumber);
+        System.out.println("At index: "+index);
         while (true){
-            if (index > 512){
+            if (index >= 512){
                 index=index-512;
                 sectorNumber++;
                 thisSectorData = readSector.readSector(drive, sectorNumber);
             }
             ArrayList<Integer> checkArray = new ArrayList<>();
+            System.out.println("Inside index: "+index);
+
             for (int i = 0; i < FileFormat.length;i++){
                 checkArray.add(0xFF&thisSectorData[index+2*(i+1)]);
             }
@@ -124,7 +168,7 @@ public class exFATOperations {
             index = index+84;
             ArrayList<Byte> listFileClusterOffset = new ArrayList<>();
             ArrayList<Byte> listFileSize = new ArrayList<>();
-            if (index > 512){
+            if (index >= 512){
                 index=index-512;
                 sectorNumber++;
                 thisSectorData = readSector.readSector(drive, sectorNumber);
@@ -153,16 +197,18 @@ public class exFATOperations {
 
     public static void readAndWriteFiles(ArrayList<Integer> fileClusters, int clusterHeapOffset, int clusterSize){
         byte[] sectorData = {};
-
+        System.out.println("Called read and write files");
         for (int i = 0; i < fileClusters.size();i+=2){
-            int address = clusterHeapOffset+(fileClusters.get(i)-2)*clusterSize;
+            int address = clusterHeapOffset+((fileClusters.get(i)-2)*clusterSize);
             int numSectors = fileClusters.get(i+1)/512;
             if (numSectors*512 != fileClusters.get(i+1)){
                 numSectors++;
             }
             String filePath = "\\\\.\\" + drive+ ":\\File_"+i+"_data.txt";
+            System.out.println("Inside saving for loop");
+            System.out.println("File: " + filePath + "; Address: " + address);
             try (FileWriter fileWriter = new FileWriter(filePath)) {
-
+                
                 for (int j = 0; j < numSectors;j++){
                     sectorData = readSector.readSector(drive, j+address);
                         for (byte b : sectorData) {
@@ -184,7 +230,35 @@ public class exFATOperations {
         // }
 
     }
+    
+    public static void combineFiles() {
+        File directory = new File("D:\\");
+        if (!directory.exists() || !directory.isDirectory()) {
+            System.out.println("The specified path is not a valid directory.");
+            return;
+        }
 
+        File[] files = directory.listFiles((dir, name) -> name.matches("File_\\d+_data\\.txt"));
+        if (files == null || files.length == 0) {
+            System.out.println("No text files found in the specified directory with the pattern 'File_X_data.txt'.");
+            return;
+        }
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\criticalFile.txt"))) {
+            for (File file : files) {
+                System.out.println("Processing file: " + file.getName());
+                List<String> lines = Files.readAllLines(file.toPath());
+                for (String line : lines) {
+                    writer.write(line);
+                    writer.newLine();
+                }
+            }
+            System.out.println("All files have been combined into: " + "D:\\criticalFile.txt");
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("An error occurred while combining the files.");
+        }
+    }
     public static void masterBootSector(byte[] sectorData){
 
         int sectorLength = sectorData.length;
@@ -231,9 +305,11 @@ public class exFATOperations {
         int rootDirectorySector = convertHexToDecimal(FirstClusterOfRootDirectory);
         int clusterSize = 1<<convertHexToDecimal(sectorSizeArray); //calculates number of sector per cluster
 
+        System.out.println("Cluster Size: "+clusterSize);
 
         rootDirectorySector = clusterHeapSector+((rootDirectorySector-2)*clusterSize);
-        
+        System.out.println("Root Driectory sector: "+rootDirectorySector);
+
         ArrayList<Integer> firstFile = findFirstFile(rootDirectorySector,clusterSize);
 
         if (firstFile.get(0) == 0 && firstFile.get(1) == 0){
@@ -255,7 +331,7 @@ public class exFATOperations {
         }
 
         readAndWriteFiles(fileClusters, clusterHeapSector, clusterSize);
-
+        combineFiles();
 
 
         System.out.println(rootDirectorySector);

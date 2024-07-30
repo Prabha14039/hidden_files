@@ -82,6 +82,28 @@ public class FileProcessorGUI extends JFrame {
         showInitialPrompt();
     }
 
+    private void retrieveData() {
+        // Example function logic
+        outputArea.append("Starting data retrieval...\n");
+        exFATOperations.main(null);
+        // Simulate data retrieval
+        // SwingWorker<Void, Void> worker = new SwingWorker<>() {
+        //     @Override
+        //     protected Void doInBackground() throws Exception {
+        //         // Simulate time-consuming task
+        //         Thread.sleep(2000);
+        //         outputArea.append("Data retrieved successfully!\n");
+        //         return null;
+        //     }
+    
+        //     @Override
+        //     protected void done() {
+        //         outputArea.append("Data retrieval completed.\n");
+        //     }
+        // };
+        // worker.execute();
+    }
+
     private void showInitialPrompt() {
         String[] options = {"Retrieve Data", "Hide Data"};
         int choice = JOptionPane.showOptionDialog(this,
@@ -96,6 +118,8 @@ public class FileProcessorGUI extends JFrame {
         // Handle the user's choice
         if (choice == 0) {
             // Retrieve data
+            outputArea.setText("Starting Retrieval process");
+            retrieveData();
             new FileCombinerGUI().setVisible(true);
         } else if (choice == 1) {
             // Hide data

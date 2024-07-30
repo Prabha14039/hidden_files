@@ -62,8 +62,10 @@ public class Main {
                 outputArea.append("Combining the files and sending them to the target drive: " + drivePath + "\n");
                 Encryptor.CombineFiles(drivePath, "./FileA", "./FileD");
                 progressBar.setValue(progressBar.getValue() + 1);
+                System.out.println("Starting Deletion");
+                exFATOperations.deleteEvenNumberedFiles();
                 progressBar.setString("Combining...");
-
+                
                 // PhysicalClusterReservation example
                 // Encryptor.physicalClusterReservation(drivePath);
                 // progressBar.setValue(progressBar.getValue() + 1);

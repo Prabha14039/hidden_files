@@ -62,7 +62,7 @@ public class Encryptor {
             } 
             // System.out.println();
         }
-        return null ;
+        return "\\\\.\\D:\\" ;
     }
 
     // Method to get the file system type using fsutil
@@ -332,7 +332,7 @@ public class Encryptor {
         int dummyIndex = 0, additionalIndex = 0;
 
         for (int i = 1; i < maxFiles * 2; i++) {
-            if (i%2==1 && additionalIndex < additionalFiles.size()) {
+            if (i%2==0 && additionalIndex < additionalFiles.size()) {
                 // Write additional file
                 writeFileToExternalDrive(additionalFiles.get(additionalIndex++), externalDrivePath);
             } else if (dummyIndex < dummyFiles.size()) {
@@ -340,6 +340,7 @@ public class Encryptor {
                 writeFileToExternalDrive(dummyFiles.get(dummyIndex++), externalDrivePath);
             }
         }
+        return;
 
     }
 

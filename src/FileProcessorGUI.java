@@ -96,11 +96,11 @@ public class FileProcessorGUI extends JFrame {
         // Handle the user's choice
         if (choice == 0) {
             // Retrieve data
-            outputArea.setText("Data retrieval option selected.");
-            
+            new FileCombinerGUI().setVisible(true);
         } else if (choice == 1) {
             // Hide data
             outputArea.setText("Data hiding option selected.");
+            // Proceed with the data hiding logic in this window
         } else {
             // User closed the dialog
             outputArea.setText("No option selected.");

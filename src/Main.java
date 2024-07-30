@@ -79,42 +79,6 @@ public class Main {
         }
     }
 
-    public static void combineFiles(String outputFilePath, JTextArea outputArea, JProgressBar progressBar) {
-        String path;
-        long clusterSize = 0;
-
-        try {
-            // Check if the OS is Windows
-            boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("win");
-            if (isWindows) {
-                path = "C:\\";
-            } else {
-                path = "/";
-            }
-
-            clusterSize = Encryptor.getClusterSize(path);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        }
-
-        // Update progress bar for combining files
-        progressBar.setIndeterminate(true);
-        progressBar.setString("Combining Files...");
-
-        try {
-            // Encryptor.fileCombine(clusterSize, outputFilePath, parts, remSize);
-            outputArea.append("Files have been combined successfully.\n");
-        } catch (Exception e) {
-            e.printStackTrace();
-            outputArea.append("Error during file combining.\n");
-        } finally {
-            progressBar.setIndeterminate(false);
-            progressBar.setValue(progressBar.getMaximum());
-            progressBar.setString("Completed");
-        }
-    }
-
     public static void main(String[] args) {
         if (args.length < 2) {
             System.err.println("Provide the necessary arguments: <action> <file path>");
@@ -133,9 +97,6 @@ public class Main {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                break;
-            case "combine":
-                combineFiles(filePath, dummyOutputArea, dummyProgressBar);
                 break;
             default:
                 System.err.println("Unknown action. Use 'split' or 'combine'.");

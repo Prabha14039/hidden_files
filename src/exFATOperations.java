@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 public class exFATOperations {
 
-    static String drive = "D";
+    Siring drive = Encryptor.drive_path();
     static int[] FileFormat = {0x46, 0x69, 0x6C, 0x65, 0x30, 0x30, 0x30, 0x31, 0x2E, 0x74, 0x78, 0x74};
     
     public static void main(String[] args) {

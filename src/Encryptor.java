@@ -57,12 +57,12 @@ public class Encryptor {
                 //      System.out.println("Path of removable drive: " + drivePath);
                 // Check file system type
                 String fileSystemType = getFileSystemType(drivePath);
-                return "\\\\.\\D:\\"; 
+                return drivePath; 
                 //   System.out.println("File System Type: " + fileSystemType);
             } 
             // System.out.println();
         }
-        return "\\\\.\\D:\\";
+        return null ;
     }
 
     // Method to get the file system type using fsutil
@@ -119,7 +119,7 @@ public class Encryptor {
     {
         RandomAccessFile file = null;
         try {
-            new File("Files").mkdirs();
+            new File("FileD").mkdirs();
             file = new RandomAccessFile(filePath, "r");
 
             String fileExtension = "";
@@ -129,7 +129,7 @@ public class Encryptor {
             }
 
             for (int i = 1; i <=parts; i++) {
-            String outputFile = String.format("./Files/files %04d" + fileExtension, 2*i);
+            String outputFile = String.format("./FileD/File%04d" + fileExtension, 2*i);
                 try (FileOutputStream outputStream = new FileOutputStream(outputFile)) {
                     byte[] buffer = new byte[(int) clusterSize];
                     int readBuffer = file.read(buffer);
@@ -138,7 +138,7 @@ public class Encryptor {
             }
 
             if (remSize > 0) {
-            String remFile = String.format("./Files/files %04d" + fileExtension,2*(parts+1));
+            String remFile = String.format("./FileD/File%04d" + fileExtension,2*(parts+1));
                 try (FileOutputStream rem = new FileOutputStream(remFile)) {
                     byte[] buffer = new byte[remSize];
                     int readBuffer = file.read(buffer);
@@ -210,34 +210,6 @@ public class Encryptor {
         }
     }
 
-    public static void dummyfiles(String filePath, long clusterSize, int parts, int remSize) throws IOException {
-        byte[] buffer = new byte[(int) clusterSize];
-        new File("FileD").mkdirs();
-
-        String fileExtension = Extension(filePath);
-
-        for (int i = 1; i <=parts; i++) {
-            String OutputFile = String.format("./FileD/File%04d" + fileExtension, 2*i);
-            try (FileOutputStream OutputStream = new FileOutputStream(OutputFile)) {
-                for (int j = 0; j < clusterSize; j++) {
-                    buffer[j] = 0;
-                }
-                OutputStream.write(buffer);
-            }
-        }
-
-        if (remSize > 0) {
-            int startIndex = 2 * parts + 1;
-
-            String remFile2 = String.format("./FileD/File%04d" + fileExtension, startIndex + 1);
-            try (FileOutputStream rem2 = new FileOutputStream(remFile2)) {
-                for (int j = 0; j < clusterSize; j++) {
-                    buffer[j] = 0;
-                }
-                rem2.write(buffer);
-            }
-        }
-    }
     public static void Retrieval(String drivePath){
 
     }

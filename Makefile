@@ -1,5 +1,5 @@
 
-all:Main always
+all:Main 
 
 always:
 	mkdir -p build

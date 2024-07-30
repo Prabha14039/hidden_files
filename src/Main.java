@@ -41,7 +41,7 @@ public class Main {
             int rem = (int) (contentSize % clusterSize);
 
             // Update progress bar maximum value
-            progressBar.setMaximum(parts + 5); // 5 additional steps for splitting, addition, dummy, combining, and reservation
+            progressBar.setMaximum(3); // 5 additional steps for splitting, addition, dummy, combining, and reservation
             progressBar.setValue(0);
 
             // Example usage of Encryptor class methods
@@ -58,12 +58,6 @@ public class Main {
                 progressBar.setValue(progressBar.getValue() + 1);
                 progressBar.setString("Creating FileA...");
 
-                // Dummyfiles example
-                outputArea.append("Creating FileD folder ... \n");
-                Encryptor.dummyfiles(inputFilePath, clusterSize, parts, rem);
-                progressBar.setValue(progressBar.getValue() + 1);
-                progressBar.setString("Creating FileD...");
-
                 // CombineFiles example
                 outputArea.append("Combining the files and sending them to the target drive: " + drivePath + "\n");
                 Encryptor.CombineFiles(drivePath, "./FileA", "./FileD");
@@ -71,10 +65,10 @@ public class Main {
                 progressBar.setString("Combining...");
 
                 // PhysicalClusterReservation example
-                Encryptor.physicalClusterReservation(drivePath);
-                progressBar.setValue(progressBar.getValue() + 1);
-                progressBar.setString("Reserving Clusters...");
-                outputArea.append("Content size: " + contentSize + " bytes\n");
+                // Encryptor.physicalClusterReservation(drivePath);
+                // progressBar.setValue(progressBar.getValue() + 1);
+                // progressBar.setString("Reserving Clusters...");
+                // outputArea.append("Content size: " + contentSize + " bytes\n");
 
             } catch (IOException e) {
                 e.printStackTrace();
